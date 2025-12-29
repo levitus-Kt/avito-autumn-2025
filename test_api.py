@@ -29,3 +29,22 @@ CREATE_SCHEMA = {
         }
     }
 }
+
+GET_ITEM_SCHEMA = {
+    "type": "array",
+    "items": CREATE_SCHEMA  # GET /item/{id} возвращает массив с одним элементом
+}
+
+STATS_SCHEMA = {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "required": ["likes", "viewCount", "contacts"],
+        "properties": {
+            "likes": {"type": "integer"},
+            "viewCount": {"type": "integer"},
+            "contacts": {"type": "integer"}
+        }
+    }
+}
+
