@@ -70,3 +70,37 @@ class ApiClient:
         """GET /api/1/statistic/{id} — получение статистики по объявлению"""
         return requests.get(f"{self.base_url}/statistic/{item_id}")
 
+
+#Фикстуры
+@pytest.fixture(scope="module")
+def api_client() -> ApiClient:
+    """
+    Фикстура для создания единого клиента на весь модуль (экономия ресурсов)
+    """
+    return ApiClient(BASE_URL)
+
+
+@pytest.fixture(scope="module")
+def seller_id() -> int:
+    """
+    Генерация уникального sellerID в рекомендованном диапазоне
+    """
+    return random.randint(111111, 999999)
+
+
+@pytest.fixture
+def create_payload(seller_id: int) -> dict:
+    """
+    Базовый payload для создания объявления
+    """
+    return {
+        "sellerID": seller_id,
+        "name": f"Test Item {random.randint(1, 10000)}",  # Уникальное имя
+        "price": random.randint(100, 50000),
+        "statistics": {
+            "likes": random.randint(0, 100),
+            "viewCount": random.randint(0, 200),
+            "contacts": random.randint(0, 50)
+        }
+    }
+
