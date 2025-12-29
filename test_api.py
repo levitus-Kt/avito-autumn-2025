@@ -175,3 +175,30 @@ def test_get_items_by_seller_no_items(api_client: ApiClient):
     response = api_client.get_items_by_seller(new_seller_id)
     assert response.status_code == 200
     assert response.json() == []
+
+
+def test_get_stats_success(api_client: ApiClient, create_payload: dict):
+    """Проверка получения статистики по объявлению"""
+    # Создаём объявление
+    create_resp = api_client.create_item(create_payload)
+    assert create_resp.status_code == 200
+    item_id = create_resp.json()["id"]
+
+    # Получаем статистику
+    response = api_client.get_stats(item_id)
+    assert response.status_code == 200
+
+    data = response.json()
+    validate(instance=data, schema=STATS_SCHEMA)
+    assert len(data) == 1
+
+    expected_stats = create_payload["statistics"]
+    assert data[0]["likes"] == expected_stats["likes"]
+    assert data[0]["viewCount"] == expected_stats["viewCount"]
+    assert data[0]["contacts"] == expected_stats["contacts"]
+
+
+def test_get_stats_not_found(api_client: ApiClient):
+    """Проверка получения статистики для несуществующего объявления"""
+    response = api_client.get_stats("non_existent_id_67890")
+    assert response.status_code == 404
