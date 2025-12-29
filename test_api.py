@@ -145,3 +145,33 @@ def test_get_item_not_found(api_client: ApiClient):
     """Проверка поведения при запросе несуществующего ID"""
     response = api_client.get_item("non_existent_id_12345")
     assert response.status_code == 404
+
+
+def test_get_items_by_seller_success(api_client: ApiClient, seller_id: int, create_payload: dict):
+    """Проверка получения списка объявлений одного продавца (несколько объявлений)"""
+    # Создаём первое объявление
+    api_client.create_item(create_payload)
+    time.sleep(0.5)
+
+    # Создаём второе объявление с тем же sellerID
+    second_payload = create_payload.copy()
+    second_payload["name"] = f"Second Item {random.randint(1, 10000)}"
+    api_client.create_item(second_payload)
+
+    time.sleep(0.5)
+
+    # Получаем все объявления продавца
+    response = api_client.get_items_by_seller(seller_id)
+    assert response.status_code == 200
+
+    data = response.json()
+    validate(instance=data, schema=GET_ITEM_SCHEMA)
+    assert len(data) >= 2
+
+
+def test_get_items_by_seller_no_items(api_client: ApiClient):
+    """Проверка получения пустого списка для продавца без объявлений"""
+    new_seller_id = random.randint(111111, 999999)  # Гарантированно новый
+    response = api_client.get_items_by_seller(new_seller_id)
+    assert response.status_code == 200
+    assert response.json() == []
