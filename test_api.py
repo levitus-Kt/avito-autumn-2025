@@ -104,3 +104,20 @@ def create_payload(seller_id: int) -> dict:
         }
     }
 
+
+# Тесты
+def test_create_item_success(api_client: ApiClient, create_payload: dict):
+    """Проверка успешного создания объявления с валидными данными"""
+    response = api_client.create_item(create_payload)
+    assert response.status_code == 200, f"Ожидали 200, получили {response.status_code}: {response.text}"
+
+    data = response.json()
+    validate(instance=data, schema=CREATE_SCHEMA)  # Проверка контракта
+    assert data["sellerId"] == create_payload["sellerID"]
+
+
+def test_create_item_missing_field(api_client: ApiClient, create_payload: dict):
+    """Негативный тест: отсутствие обязательного поля (name)"""
+    del create_payload["name"] 
+    response = api_client.create_item(create_payload)
+    assert response.status_code == 400, f"Ожидали 400 при отсутствии поля, получили {response.status_code}"
