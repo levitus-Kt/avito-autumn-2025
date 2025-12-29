@@ -121,3 +121,27 @@ def test_create_item_missing_field(api_client: ApiClient, create_payload: dict):
     del create_payload["name"] 
     response = api_client.create_item(create_payload)
     assert response.status_code == 400, f"Ожидали 400 при отсутствии поля, получили {response.status_code}"
+
+
+def test_get_item_success(api_client: ApiClient, create_payload: dict):
+    """Проверка получения объявления по ID после создания"""
+    # Создаём объявление
+    create_resp = api_client.create_item(create_payload)
+    assert create_resp.status_code == 200
+    item_id = create_resp.json()["id"]
+
+    # Получаем по ID
+    response = api_client.get_item(item_id)
+    assert response.status_code == 200
+
+    data = response.json()
+    validate(instance=data, schema=GET_ITEM_SCHEMA)
+    assert len(data) == 1
+    assert data[0]["id"] == item_id
+    assert data[0]["sellerId"] == create_payload["sellerID"]
+
+
+def test_get_item_not_found(api_client: ApiClient):
+    """Проверка поведения при запросе несуществующего ID"""
+    response = api_client.get_item("non_existent_id_12345")
+    assert response.status_code == 404
